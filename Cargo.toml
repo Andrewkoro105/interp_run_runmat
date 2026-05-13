@@ -1,0 +1,18 @@
+[package]
+name = "interp_run_runmat"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+runmat-lexer = "0.4"
+runmat-parser = "0.4"
+runmat-hir = "0.4"
+runmat-ignition = "0.4"
+runmat-builtins = "0.4.1"
+runmat-async = "0.4.1"
+tokio = { version = "1", features = ["rt"] }
+serde_json = "1.0.149"
+tracing = "0.1.44"
+interp_run = {git = "https://github.com/Andrewkoro105/interp_run.git"}
+serde = "1.0.228"
+sugar = "0.2.0"
