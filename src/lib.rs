@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use execute::execute;
-use interp_run::backend::{
-    self, Backend, Values,
-    from_sys::script::{InspectorError, MatParser, ScriptInspector},
+use interp_run::{
+    from_sys::script::{InspectorError, MatParser, Script, ScriptInspector},
+    run_script::RunScript,
+    values::Values,
 };
 use runmat_async::RuntimeError;
 use runmat_hir::SemanticError;
@@ -13,6 +14,8 @@ use serde_json::Value as JsonValue;
 use sugar::hashset;
 pub mod execute;
 pub mod runmat_json;
+
+pub struct RunmatBuilder {}
 
 #[derive(Debug)]
 pub enum RunmatError {
@@ -28,17 +31,9 @@ pub struct Runmat {
     pub script_inspector: ScriptInspector,
 }
 
-impl Backend for Runmat {
-    type Script = backend::from_sys::script::Script;
+impl RunScript for Runmat {
+    type Script = Script;
     type Error = RunmatError;
-
-    fn run_scripts(
-        &self,
-        script: Vec<Self::Script>,
-        data: HashMap<String, JsonValue>,
-    ) -> Result<Vec<Values>, Self::Error> {
-        todo!()
-    }
 
     fn run_script(
         &self,
@@ -59,22 +54,6 @@ impl Backend for Runmat {
         }
         execute(base_script, data).map(|values| Values::new(values, result_name))
     }
-
-    fn run(
-        &mut self,
-        script: Self::Script,
-        data: HashMap<String, JsonValue>,
-    ) -> Result<Values, Self::Error> {
-        todo!()
-    }
-
-    fn clear(&mut self) -> Result<(), Self::Error> {
-        todo!()
-    }
-
-    fn get_data(&self) -> Result<Values, Self::Error> {
-        todo!()
-    }
 }
 
 impl Runmat {
@@ -92,7 +71,7 @@ impl Runmat {
 mod test {
     use serde_json::Number;
 
-    use crate::backend::Backend;
+    use interp_run::run_script::RunScript;
     use std::collections::HashMap;
 
     use super::*;
