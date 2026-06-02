@@ -29,13 +29,17 @@ pub fn execute(
     )
     .map_err(RunmatError::SemanticError)?;
     let bc = compile(&low.hir, &HashMap::new()).map_err(RunmatError::CompileError)?;
-    let values = interpret(&bc, input_data)?;
+    if bc.var_count != 0 {
+        let values = interpret(&bc, input_data)?;
 
-    Ok(low
-        .var_names
-        .into_iter()
-        .map(|(id, name)| (name, runmat2json_value(values[id.0].clone())))
-        .collect())
+        Ok(low
+            .var_names
+            .into_iter()
+            .map(|(id, name)| (name, runmat2json_value(values[id.0].clone())))
+            .collect())
+    } else {
+        Ok(HashMap::new())
+    }
 }
 
 fn interpret(bytecode: &Bytecode, value: RunmatValue) -> Result<Vec<RunmatValue>, RunmatError> {
@@ -77,5 +81,16 @@ mod tests {
             .as_u64()
             .unwrap()
         );
+    }
+
+    #[test]
+    fn empty() {
+        execute(
+            "".to_string(),
+            hashmap! {
+                "a".to_string() => json!(42),
+            },
+        )
+        .unwrap();
     }
 }
