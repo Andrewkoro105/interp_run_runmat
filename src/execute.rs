@@ -1,5 +1,4 @@
 use crate::RunmatError;
-use crate::runmat_json::json2runmat_value;
 use crate::runmat_json::runmat2json_value;
 use runmat_builtins::Value as RunmatValue;
 use runmat_hir::LoweringContext;
@@ -8,21 +7,23 @@ use runmat_ignition::compile;
 use runmat_ignition::{Bytecode, InterpreterOutcome, interpret_with_vars};
 use runmat_parser::parse;
 use serde_json::Value as JsonValue;
+use serde_json::json;
 use std::collections::HashMap;
 use sugar::hashmap;
 
 pub fn execute(
-    script: String,
+    mut script: String,
     data: HashMap<String, JsonValue>,
 ) -> Result<HashMap<String, JsonValue>, RunmatError> {
-    let input_data = json2runmat_value(JsonValue::Object(data.into_iter().collect()));
-
+    //let input_data = json2runmat_value(JsonValue::Object(data.into_iter().collect()));
+    let input_data_json = RunmatValue::String(serde_json::to_string(&json!(data)).map_err(RunmatError::SerdeJson)?);
+    script.insert_str(0, "input_data = jsondecode(input_data_json);");
     let ast = parse(&script).map_err(RunmatError::SyntaxError)?;
     let low = lower(
         &ast,
         &LoweringContext {
             variables: &hashmap! {
-                "input_data".into() => 0,
+                "input_data_json".into() => 0,
             },
             functions: &HashMap::new(),
         },
@@ -30,7 +31,7 @@ pub fn execute(
     .map_err(RunmatError::SemanticError)?;
     let bc = compile(&low.hir, &HashMap::new()).map_err(RunmatError::CompileError)?;
     if bc.var_count != 0 {
-        let values = interpret(&bc, input_data)?;
+        let values = interpret(&bc, input_data_json)?;
 
         Ok(low
             .var_names

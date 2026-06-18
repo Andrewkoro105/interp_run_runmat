@@ -25,6 +25,7 @@ pub enum RunmatError {
     RuntimeError(RuntimeError),
     TokioRuntime(std::io::Error),
     InspectorError(InspectorError),
+    SerdeJson(serde_json::Error),
 }
 
 pub struct Runmat {
